@@ -31,6 +31,7 @@ def fast_end_to_end(monoc_image, threshold):
     cv.imshow('test', monoc_image)
     for i in range(monoc_image.shape[0]):
         for j in range(monoc_image.shape[1]):
+            pass
 
     features_detected_end = []
     return features_detected_end
