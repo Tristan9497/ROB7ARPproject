@@ -26,18 +26,54 @@ def fast_test_preliminary(pixels, threshold):
     return it_is_brighter or it_is_darker
 
 
-def fast_end_to_end(monoc_image, threshold):
-    cv.namedWindow('test')
-    cv.imshow('test', monoc_image)
-    for i in range(monoc_image.shape[0]):
-        for j in range(monoc_image.shape[1]):
-            pass
+def fast_check_every_preliminary(monoc_image, threshold):
+    candidates = []
+    for i in range(monoc_image.shape[0]-6):
+        for j in range(monoc_image.shape[1]-6):
+            pixels = [monoc_image[i+3, j+3],
+                      monoc_image[i+3, j+6],
+                      monoc_image[i+6, j+3],
+                      monoc_image[i, j+3],
+                      monoc_image[i+3, j]]
+            if fast_test_preliminary(pixels, threshold):
+                candidates.append([j, i])
+    return candidates
 
+
+def fast_get_conti_pixels(monoc_image, candidate):
+    values = [monoc_image[candidate[0] + 3, candidate[1]],
+              monoc_image[candidate[0] + 4, candidate[1]],
+              monoc_image[candidate[0] + 5, candidate[1]] + 1,
+              monoc_image[candidate[0] + 6, candidate[1]] + 2,
+              monoc_image[candidate[0] + 6, candidate[1]] + 3,
+              monoc_image[candidate[0] + 6, candidate[1]] + 4,
+              monoc_image[candidate[0] + 5, candidate[1]] + 5,
+              monoc_image[candidate[0] + 4, candidate[1]] + 6,
+              monoc_image[candidate[0] + 3, candidate[1]] + 6,
+              monoc_image[candidate[0] + 2, candidate[1]] + 6,
+              monoc_image[candidate[0] + 1, candidate[1]] + 5,
+              monoc_image[candidate[0], candidate[1]] + 4,
+              monoc_image[candidate[0], candidate[1]] + 3,
+              monoc_image[candidate[0], candidate[1]] + 2,
+              monoc_image[candidate[0] + 1, candidate[1]] + 1,
+              monoc_image[candidate[0] + 2, candidate[1]],
+              ]
+    return values
+
+
+def fast_end_to_end(monoc_image, threshold):
+    cadidate_locations = fast_check_every_preliminary(monoc_image, threshold)
     features_detected_end = []
     return features_detected_end
 
 
-pic = cv.imread('/home/thekinga/University/Polybot/TestMap_cropped.jpg')
+#pic = cv.imread('/home/thekinga/University/Polybot/TestMap_cropped.jpg')
+pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
 monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
-features_detected_after_fast = fast_end_to_end(monochrome, 25)
+candidate_locations = fast_check_every_preliminary(monochrome, 25)
+for i in range(len(candidate_locations)):
+    cv.circle(pic, candidate_locations[i], 3, (0), 1)
+#features_detected_after_fast = fast_end_to_end(monochrome, 25)
+cv.namedWindow('test')
+cv.imshow('test', pic)
 cv.waitKey()
