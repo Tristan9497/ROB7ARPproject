@@ -92,7 +92,7 @@ class Detector:
             bright_or_dark.append(bright_or_dark.pop(0))
         return judgement
 
-    def nms(self, candidate_coordinates, overlap_thresh=0.4):
+    def nms(self, candidate_coordinates, overlap_thresh=0.3):
         # Return an empty list, if no boxes given
         if len(candidate_coordinates) == 0:
             return []
@@ -137,39 +137,41 @@ class Detector:
     def end_to_end(self, monoc_image_pyramid):
         features_detected_end = []
         scale = 1
+        shape_of_original = monoc_image_pyramid[0].shape
         for monoc_image in monoc_image_pyramid:
             print("starting on a new level")
             features_detected = Detector.end_to_end_on_single(self, monoc_image)
             features_detected_nms = np.hstack([np.array(features_detected), np.add(np.array(features_detected), 6)])
             features_detected_nms = Detector.nms(self, features_detected_nms)[:, :2]
             # print(features_detected_nms.shape)
+
+            # Harris goes here
+
+            #
             features_detected_end.extend(np.multiply(features_detected_nms, scale))
             scale *= 2
         return features_detected_end
 
-
-# pic = cv.imread('/home/thekinga/University/Polybot/TestMap_cropped.jpg')
-
-n = 9
-t = 30
-
-fast_detector = Detector(n, t)
-pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
-pic2 = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
-monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
-s_rows, s_cols = map(int, monochrome.shape)
-# print(s_cols, s_rows)
-monoc_image_pyramid = []
-monoc_image_pyramid += [monochrome]
-monoc_image_pyramid += [cv.pyrDown(monochrome)]
-monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
-monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
-# print(len(monoc_image_pyramid))
-final_detections = fast_detector.end_to_end(monoc_image_pyramid)
-# print(len(final_detections))
-for index in range(len(final_detections)):
-    cv.circle(pic, [final_detections[index][1], final_detections[index][0]], 5, (0), 1)
-cv.namedWindow('test')
-cv.imshow('test', pic)
-
-cv.waitKey()
+# n = 9
+# t = 30
+#
+# fast_detector = Detector(n, t)
+# pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
+# pic2 = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
+# monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
+# s_rows, s_cols = map(int, monochrome.shape)
+# # print(s_cols, s_rows)
+# monoc_image_pyramid = []
+# monoc_image_pyramid += [monochrome]
+# monoc_image_pyramid += [cv.pyrDown(monochrome)]
+# monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
+# # monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
+# # print(len(monoc_image_pyramid))
+# final_detections = fast_detector.end_to_end(monoc_image_pyramid)
+# # print(len(final_detections))
+# for index in range(len(final_detections)):
+#     cv.circle(pic, [final_detections[index][1], final_detections[index][0]], 5, (0), 1)
+# cv.namedWindow('test')
+# cv.imshow('test', pic)
+#
+# cv.waitKey()
