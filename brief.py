@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+from offset_vector import *
 import matplotlib.pyplot as plt
 
 def getcoordinate(mu, sigma, patchw):
@@ -13,15 +14,18 @@ def brief(image, kp, patchw):
     for i in range(kp.shape[1]):
         x = np.floor(kp[0,i]).astype(int)
         y = np.floor(kp[1,i]).astype(int)
-        maxw=np.ceil(patchw/2)
+        maxw=np.ceil(patchw/2).astype(int)
         patchr=np.floor(patchw/2).astype(int)
         #check if keypoint is outofbounds
-        print(x ,y)
+
         if maxw<x<(image.shape[1]-maxw) and maxw<y<(image.shape[0]-maxw) :
-            patch_image = image[y-patchr:y+patchr,x-patchr:x + patchr]
-            descriptor=calculateDescriptor(patch_image,kp[2,i])
+            patch_image = image[y-maxw:y+patchr,x-maxw:x + patchr]
+
+            #call antes function to get theta
+            c, theta=offset_vector(patch_image)
+
+            descriptor=calculateDescriptor(patch_image,theta)
             Descriptors.append(descriptor)
-            print(descriptor)
 
 def calculateDescriptor(src, theta):
     ##assume thata is in radian already
@@ -29,13 +33,11 @@ def calculateDescriptor(src, theta):
     sigma =(1/25)*Patchw*Patchw
     num = 16
     kernelshape=(9,9)
-
-
     img=cv2.GaussianBlur(src,kernelshape,2,2,cv2.BORDER_DEFAULT)
+
 
     binarystring=0
     tao=0
-
     ##create all coordinates
     X = np.zeros((num,2))
     Y = np.zeros((num,2))
@@ -84,6 +86,7 @@ if __name__=="__main__":
     src=cv2.imread(r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-1.jpg')
 
     src=cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+
     #creating random keypoints for testing purposes
     kp=np.random.rand(3,10)
     kp[0,:] *= src.shape[1]
