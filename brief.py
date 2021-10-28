@@ -58,6 +58,7 @@ def brief(src, theta):
 if __name__=="__main__":
     #create random patch
     src=np.random.randint(255, size=(31, 31),dtype=np.uint8)
+
     cv2.imshow('random patch', src)
     identifier=brief(src,0)
     cv2.waitKey(0)
