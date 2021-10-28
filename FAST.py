@@ -49,11 +49,10 @@ class Detector:
                           monoc_image[i, j + 3],
                           monoc_image[i + 3, j]]
                 if Detector.test_preliminary(self, pixels):
-                    candidates.append([j, i])
+                    candidates.append([i, j])
         return candidates
 
     def get_conti_pixels(self, monoc_image, candidate):
-        print(candidate)
         values = [monoc_image[candidate[0] + 3, candidate[1]],
                   monoc_image[candidate[0] + 4, candidate[1]],
                   monoc_image[candidate[0] + 5, candidate[1]] + 1,
@@ -96,11 +95,18 @@ class Detector:
     def end_to_end(self, monoc_image):
         features_detected_end = []
         candidate_locations = Detector.check_every_preliminary(self, monoc_image)
+        counter = 0
         for candidate in candidate_locations:
+            counter += 1
+            # print("counter: ", counter)
             pixel_values_around_candidate = Detector.get_conti_pixels(self, monoc_image, candidate)
-            Detector.check_continous(self, monoc_image[candidate[0] + 3, candidate[1] + 3],
-                                     pixel_values_around_candidate)
-            features_detected_end += candidate
+            if Detector.check_continous(self, monoc_image[candidate[0] + 3, candidate[1] + 3],
+                                        pixel_values_around_candidate):
+                features_detected_end += [candidate]
+                if counter < 10:
+                    pass
+                    # print("example of features detected: ", features_detected_end)
+            # print("number of found: ", len(features_detected_end))
         return features_detected_end
 
 
@@ -108,9 +114,10 @@ class Detector:
 fast_detector = Detector()
 pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
 monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
-candidate_locations = fast_detector.end_to_end(monochrome)
-for index in range(len(candidate_locations)):
-    cv.circle(pic, candidate_locations[index], 3, (0), 1)
+final_detections = fast_detector.end_to_end(monochrome)
+print(len(final_detections))
+for index in range(len(final_detections)):
+    cv.circle(pic, [final_detections[index][1], final_detections[index][0]], 2, (0), 1)
 # features_detected_after_fast = fast_end_to_end(monochrome, 25)
 cv.namedWindow('test')
 cv.imshow('test', pic)
