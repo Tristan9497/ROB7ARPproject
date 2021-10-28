@@ -37,11 +37,12 @@ class Detector:
                     it_is_darker = False
         return it_is_brighter or it_is_darker
 
-    # apply the quicktest to every pixel in the input image with threshold, output candidates
+    # apply the quicktest to every pixel in the input image with threshold, output candidates as pixel coordinate of
+    # upper left corner
     def check_every_preliminary(self, monoc_image):
         candidates = []
-        for i in range(monoc_image.shape[0] - 6):
-            for j in range(monoc_image.shape[1] - 6):
+        for i in range(monoc_image.shape[0] - 7):
+            for j in range(monoc_image.shape[1] - 7):
                 pixels = [monoc_image[i + 3, j + 3],
                           monoc_image[i + 3, j + 6],
                           monoc_image[i + 6, j + 3],
@@ -52,6 +53,7 @@ class Detector:
         return candidates
 
     def get_conti_pixels(self, monoc_image, candidate):
+        print(candidate)
         values = [monoc_image[candidate[0] + 3, candidate[1]],
                   monoc_image[candidate[0] + 4, candidate[1]],
                   monoc_image[candidate[0] + 5, candidate[1]] + 1,
@@ -92,18 +94,24 @@ class Detector:
         return judgement
 
     def end_to_end(self, monoc_image):
-        cadidate_locations = Detector.check_every_preliminary(self, monoc_image)
         features_detected_end = []
+        candidate_locations = Detector.check_every_preliminary(self, monoc_image)
+        for candidate in candidate_locations:
+            pixel_values_around_candidate = Detector.get_conti_pixels(self, monoc_image, candidate)
+            Detector.check_continous(self, monoc_image[candidate[0] + 3, candidate[1] + 3],
+                                     pixel_values_around_candidate)
+            features_detected_end += candidate
         return features_detected_end
 
 
 # pic = cv.imread('/home/thekinga/University/Polybot/TestMap_cropped.jpg')
-# pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
-# monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
-# candidate_locations = fast_check_every_preliminary(monochrome, 25)
-# for i in range(len(candidate_locations)):
-#     cv.circle(pic, candidate_locations[i], 3, (0), 1)
-# # features_detected_after_fast = fast_end_to_end(monochrome, 25)
-# cv.namedWindow('test')
-# cv.imshow('test', pic)
-# cv.waitKey()
+fast_detector = Detector()
+pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
+monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
+candidate_locations = fast_detector.end_to_end(monochrome)
+for index in range(len(candidate_locations)):
+    cv.circle(pic, candidate_locations[index], 3, (0), 1)
+# features_detected_after_fast = fast_end_to_end(monochrome, 25)
+cv.namedWindow('test')
+cv.imshow('test', pic)
+cv.waitKey()
