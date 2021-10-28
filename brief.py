@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def getcoordinate(mu, sigma, patchw):
     while True:
@@ -8,11 +8,26 @@ def getcoordinate(mu, sigma, patchw):
         if s >= -np.floor(patchw / 2) and s <= np.floor(patchw / 2):
             return s
 
-def brief(src, theta):
+def brief(image, kp, patchw):
+    Descriptors = []
+    for i in range(kp.shape[1]):
+        x = np.floor(kp[0,i]).astype(int)
+        y = np.floor(kp[1,i]).astype(int)
+        maxw=np.ceil(patchw/2)
+        patchr=np.floor(patchw/2).astype(int)
+        #check if keypoint is outofbounds
+        print(x ,y)
+        if maxw<x<(image.shape[1]-maxw) and maxw<y<(image.shape[0]-maxw) :
+            patch_image = image[y-patchr:y+patchr,x-patchr:x + patchr]
+            descriptor=calculateDescriptor(patch_image,kp[2,i])
+            Descriptors.append(descriptor)
+            print(descriptor)
+
+def calculateDescriptor(src, theta):
     ##assume thata is in radian already
     Patchw=src.shape[0]
     sigma =(1/25)*Patchw*Patchw
-    num = 128
+    num = 16
     kernelshape=(9,9)
 
 
@@ -24,41 +39,56 @@ def brief(src, theta):
     ##create all coordinates
     X = np.zeros((num,2))
     Y = np.zeros((num,2))
-    for i in range(num):
-        X[i,0] = getcoordinate(0, sigma, Patchw).astype(int)
-        X[i,1] = getcoordinate(0, sigma, Patchw).astype(int)
-        Y[i,0] = getcoordinate(0, sigma, Patchw).astype(int)
-        Y[i,1] = getcoordinate(0, sigma, Patchw).astype(int)
-    ##rotate all points by angle of patch
+    #calculate max pixel distance to prevent out of bounds while turning the testpoints
+    maxdist=np.floor(np.sqrt(0.5*Patchw*Patchw))
 
+    for i in range(num):
+        X[i,0] = getcoordinate(0, sigma, maxdist).astype(int)
+        X[i,1] = getcoordinate(0, sigma, maxdist).astype(int)
+        Y[i,0] = getcoordinate(0, sigma, maxdist).astype(int)
+        Y[i,1] = getcoordinate(0, sigma, maxdist).astype(int)
+        ##rotate all points by angle of patch
 
     ##calculate the binarystring
-    rlt=np.zeros(30)
+    rlt=[]
     for j in range(30):
-        angleoffset=np.deg2rad(12)
-
-        c, s = np.cos(theta), np.sin(theta)
+        angleoffset=np.radians(12)
+        c, s = np.cos(angleoffset), np.sin(angleoffset)
         R = np.array(((c, -s), (s, c)))
-        theta+=angleoffset
-        Xtheta = np.dot(X, R.T)
-        Ytheta = np.dot(Y, R.T)
+        X = np.dot(X, R)
+        Y = np.dot(Y, R)
         for i in range(num):
-            xx=X[i,0].astype(int)
-            xy=X[i,1].astype(int)
-            yx=Y[i,0].astype(int)
-            yy=Y[i,1].astype(int)
+            xx=np.floor(X[i,0]).astype(int)
+            xy=np.floor(X[i,1]).astype(int)
+            yx=np.floor(Y[i,0]).astype(int)
+            yy=np.floor(Y[i,1]).astype(int)
+
             if src[xx,xy] < src[yx,yy]:
                 tao=1
             else:
                 tao=0
             binarystring+=pow(2,i-1)*tao
-        rlt[j]=binarystring
+
+        #     plt.plot([xx + 15, yx + 15],[xy + 15, yy + 15], color="white", linewidth=1)
+        #     plt.scatter([xx + 15],[xy+15],c="b")
+        #     plt.scatter([yx + 15], [yy + 15],c="r")
+        # plt.title(j)
+        # plt.imshow(img, cmap='gray', vmin=0, vmax=255)
+        # plt.show()
+        rlt.append(binarystring)
     return rlt
 
 if __name__=="__main__":
     #create random patch
-    src=np.random.randint(255, size=(31, 31),dtype=np.uint8)
+    #src=np.random.randint(255, size=(31, 31),dtype=np.uint8)
+    src=cv2.imread(r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-1.jpg')
 
-    cv2.imshow('random patch', src)
-    identifier=brief(src,0)
-    cv2.waitKey(0)
+    src=cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
+    #creating random keypoints for testing purposes
+    kp=np.random.rand(3,10)
+    kp[0,:] *= src.shape[1]
+    kp[1,:] *= src.shape[0]
+    kp[2,:] *= 2*np.pi
+
+    #print(kp)
+    brief(src,kp,31)
