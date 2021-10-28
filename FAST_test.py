@@ -1,5 +1,5 @@
 import unittest
-import FAST
+from FAST import Detector
 
 n = 11
 test_detector = FAST.Detector(n)
