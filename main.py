@@ -5,13 +5,19 @@ from offset_vector import *
 import matplotlib as plt
 
 
-def generateimagepyramid(monochrome_input):
+def generateimagepyramid(monochrome_input, k=3):
     monoc_image_pyramid = []
     monoc_image_pyramid += [monochrome_input]
-    monoc_image_pyramid += [cv.pyrDown(monochrome_input)]
-    monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
-    monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
+    if k >= 2:
+        monoc_image_pyramid += [cv.pyrDown(monochrome_input)]
+    if k >= 3:
+        monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
+    if k >= 4:
+        monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
     return monoc_image_pyramid
+
+
+# TODO add output previews if not added in functions themselves already
 
 # image_location = "./test.jpg"
 image_location = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-1.jpg'
@@ -31,6 +37,8 @@ patches2 = fast_detector.end_to_end(generateimagepyramid(monochrome2))
 des1 = brief(monochrome, patches, 31)
 des2 = brief(monochrome2, patches2, 31)
 
+# orb = cv2.ORB_create()
+
 # Matcher
 bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
@@ -38,11 +46,10 @@ bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 matches = bf.match(des1, des2)
 
 # Sort them in the order of their distance.
-matches = sorted(matches, key = lambda x:x.distance)
-patches=np.array(patches)
-patches2=np.array(patches2)
-img3=np.array([])
-
+matches = sorted(matches, key=lambda x: x.distance)
+patches = np.array(patches)
+patches2 = np.array(patches2)
+img3 = np.array([])
 # Draw first 10 matches.
-ORB_matches =cv2.drawMatches(img1, patches, img2, patches2, matches[:], None, flags=2)
+ORB_matches = cv2.drawMatches(img1, patches, img2, patches2, matches[:], None, flags=2)
 cv2.imshow(ORB_matches)
