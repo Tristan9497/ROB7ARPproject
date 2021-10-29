@@ -19,14 +19,10 @@ def generateimagepyramid(monochrome_input):
 # TODO add output previews if not added in functions themselves already
 
 # image_location = "./test.jpg"
-# image_location = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg ' \
-#                  r'University/Semester1/Perception/Exercises/aau-city-1.jpg '
-# image_location2 = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg ' \
-#                   r'University/Semester1/Perception/Exercises/aau-city-2.jpg '
-
-
-image_location = r'/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg'
-image_location2 = r'/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-2.jpg'
+image_location = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-1.jpg'
+image_location2 = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-2.jpg'
+#image_location = r'/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg'
+#image_location2 = r'/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-2.jpg'
 
 img1 = cv2.imread(image_location)
 img2 = cv2.imread(image_location2)
@@ -45,21 +41,22 @@ des2 = brief(monochrome2, patches2, 31)
 # Now detect the keypoints and compute
 # the descriptors for the query image
 # and train image
-# queryKeypoints, des1 = orb.detectAndCompute(monochrome, None)
-# trainKeypoints, des2 = orb.detectAndCompute(monochrome2, None)
-# # Matcher
-print(des1)
+#queryKeypoints, des1 = orb.detectAndCompute(monochrome, None)
+#trainKeypoints, des2 = orb.detectAndCompute(monochrome2, None)
+##Matcher
 bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
 # Match descriptors.
 matches = bf.match(des1, des2)
 
 # Sort them in the order of their distance.
-matches = sorted(matches, key=lambda x: x.distance)
-
+matches = sorted(matches, key = lambda x:x.distance)
+patches=np.array(patches)
+patches2=np.array(patches2)
+img3=np.array([])
 # Draw first 10 matches.
-img3 = cv2.drawMatches(img1, patches, img2, patches2, matches[:10], flags=2)
-plt.imshow(img3), plt.show()
+ORB_matches =cv2.drawMatches(img1, patches, img2, patches2, matches[:], None, flags=2)
+cv2.imshow(ORB_matches)
 # # TODO check if logic is correct
 # harris_measures = np.ndarray()
 # for patch in patches:
@@ -77,3 +74,9 @@ plt.imshow(img3), plt.show()
 #     C, theta = offset_vector(patch)
 #     patch_descriptors = brief(patch, theta)
 #     descriptors = np.vstack([descriptors, patch_descriptors])
+
+
+
+
+
+

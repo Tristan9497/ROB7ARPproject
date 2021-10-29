@@ -27,7 +27,7 @@ def brief(image, kp, patchw):
             descriptor=calculateDescriptor(patch_image,theta)
             Descriptors.append(descriptor)
     Output=np.array(Descriptors)
-    Output=Output.astype(np.float32)
+    Output=Output.astype(np.uint8)
     return Output
 
 def calculateDescriptor(src, theta):
