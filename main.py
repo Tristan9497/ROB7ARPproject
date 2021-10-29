@@ -11,21 +11,34 @@ main file skeleton that probably does not work
 # TODO add output previews if not added in functions themselves already
 
 # image_location = "./test.jpg"
-image_location = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg ' \
-                 r'University/Semester1/Perception/Exercises/aau-city-1.jpg '
-image_location2 = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg ' \
-                  r'University/Semester1/Perception/Exercises/aau-city-2.jpg '
+# image_location = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg ' \
+#                  r'University/Semester1/Perception/Exercises/aau-city-1.jpg '
+# image_location2 = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg ' \
+#                   r'University/Semester1/Perception/Exercises/aau-city-2.jpg '
+image_location = r'/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg'
+image_location2 = r'/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-2.jpg'
+
 img1 = cv2.imread(image_location)
 img2 = cv2.imread(image_location2)
-monochrome = cv.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-monochrome2 = cv.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+monochrome = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+monochrome2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+monoc_image_pyramid = []
+monoc_image_pyramid += [monochrome]
+monoc_image_pyramid += [cv2.pyrDown(monochrome)]
+monoc_image_pyramid2 = []
+monoc_image_pyramid2 += [monochrome]
+monoc_image_pyramid2 += [cv2.pyrDown(monochrome)]
 
 fast_detector = Detector()
-patches = fast_detector.end_to_end(monochrome)
-patches2 = fast_detector.end_to_end(monochrome2)
 
-des1 = brief(monochrome, patches, 31)
-des2 = brief(monochrome2, patches2, 31)
+print("starting on a new picture")
+patches = fast_detector.end_to_end(monoc_image_pyramid)
+
+print("starting on a new picture")
+patches2 = fast_detector.end_to_end(monoc_image_pyramid2)
+
+des1 = brief(monochrome, np.array(patches), 31)
+des2 = brief(monochrome2, np.array(patches2), 31)
 # # Matcher
 
 bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
