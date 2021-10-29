@@ -11,9 +11,9 @@ def getcoordinate(mu, sigma, patchw):
 
 def brief(image, kp, patchw):
     Descriptors = []
-    for i in range(kp.shape[1]):
-        x = np.floor(kp[0,i]).astype(int)
-        y = np.floor(kp[1,i]).astype(int)
+    for i in range(np.shape(kp)[1]):
+        x = np.floor(kp[0][i]).astype(int)
+        y = np.floor(kp[1][i]).astype(int)
         maxw=np.ceil(patchw/2).astype(int)
         patchr=np.floor(patchw/2).astype(int)
         #check if keypoint is outofbounds
@@ -26,7 +26,9 @@ def brief(image, kp, patchw):
 
             descriptor=calculateDescriptor(patch_image,theta)
             Descriptors.append(descriptor)
-    return Descriptors
+    Output=np.array(Descriptors)
+    Output=Output.astype(np.float32)
+    return Output
 
 def calculateDescriptor(src, theta):
     ##assume thata is in radian already

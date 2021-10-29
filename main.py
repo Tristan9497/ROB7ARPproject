@@ -1,5 +1,5 @@
 
-from FAST import Detector
+from FAST import *
 from brief import *
 from offset_vector import *
 import matplotlib as plt
@@ -7,7 +7,13 @@ import matplotlib as plt
 """
 main file skeleton that probably does not work
 """
-
+def generateimagepyramid(monochrome):
+    monoc_image_pyramid = []
+    monoc_image_pyramid += [monochrome]
+    monoc_image_pyramid += [cv.pyrDown(monochrome)]
+    monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
+    monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
+    return monoc_image_pyramid
 # TODO add output previews if not added in functions themselves already
 
 # image_location = "./test.jpg"
@@ -20,38 +26,36 @@ image_location2 = r'/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau
 
 img1 = cv2.imread(image_location)
 img2 = cv2.imread(image_location2)
-monochrome = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-monochrome2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
-monoc_image_pyramid = []
-monoc_image_pyramid += [monochrome]
-monoc_image_pyramid += [cv2.pyrDown(monochrome)]
-monoc_image_pyramid2 = []
-monoc_image_pyramid2 += [monochrome]
-monoc_image_pyramid2 += [cv2.pyrDown(monochrome)]
+monochrome = cv.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+monochrome2 = cv.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
 fast_detector = Detector()
+patches = fast_detector.end_to_end(generateimagepyramid(monochrome))
+patches2 = fast_detector.end_to_end(generateimagepyramid(monochrome2))
 
-print("starting on a new picture")
-patches = fast_detector.end_to_end(monoc_image_pyramid)
+des1=brief(monochrome,patches,31)
+des2=brief(monochrome2,patches2,31)
 
-print("starting on a new picture")
-patches2 = fast_detector.end_to_end(monoc_image_pyramid2)
+#orb = cv2.ORB_create()
 
-des1 = brief(monochrome, np.array(patches), 31)
-des2 = brief(monochrome2, np.array(patches2), 31)
-# # Matcher
-
+# Now detect the keypoints and compute
+# the descriptors for the query image
+# and train image
+#queryKeypoints, des1 = orb.detectAndCompute(monochrome, None)
+#trainKeypoints, des2 = orb.detectAndCompute(monochrome2, None)
+##Matcher
+print(des1)
 bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
 # Match descriptors.
-matches = bf.match(des1, des2)
+matches = bf.match(des1,des2)
 
 # Sort them in the order of their distance.
-matches = sorted(matches, key=lambda x: x.distance)
+matches = sorted(matches, key = lambda x:x.distance)
 
 # Draw first 10 matches.
-img3 = cv2.drawMatches(img1, patches, img2, patches2, matches[:10], flags=2)
-plt.imshow(img3), plt.show()
+img3 = cv2.drawMatches(img1,patches,img2,patches2,matches[:10], flags=2)
+plt.imshow(img3),plt.show()
 # # TODO check if logic is correct
 # harris_measures = np.ndarray()
 # for patch in patches:
