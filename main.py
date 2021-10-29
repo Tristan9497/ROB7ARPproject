@@ -2,6 +2,7 @@
 from FAST import *
 from brief import *
 from offset_vector import *
+import matplotlib as plt
 
 """
 main file skeleton that probably does not work
@@ -11,16 +12,31 @@ main file skeleton that probably does not work
 
 image_location = "./test.jpg"
 image_location=r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-1.jpg'
-
-pic = cv2.imread(image_location)
-monochrome = cv.cvtColor(pic, cv2.COLOR_BGR2GRAY)
+image_location2=r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-2.jpg'
+img1 = cv2.imread(image_location)
+img2 = cv2.imread(image_location2)
+monochrome = cv.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+monochrome2 = cv.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
 fast_detector = Detector()
 patches = fast_detector.end_to_end(monochrome)
+patches2 = fast_detector.end_to_end(monochrome2)
 
-brief(image_location,patches,31)
+des1=brief(monochrome,patches,31)
+des2=brief(monochrome2,patches2,31)
+##Matcher
 
+bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
+# Match descriptors.
+matches = bf.match(des1,des2)
+
+# Sort them in the order of their distance.
+matches = sorted(matches, key = lambda x:x.distance)
+
+# Draw first 10 matches.
+img3 = cv2.drawMatches(img1,patches,img2,patches2,matches[:10], flags=2)
+plt.imshow(img3),plt.show()
 # # TODO check if logic is correct
 # harris_measures = np.ndarray()
 # for patch in patches:

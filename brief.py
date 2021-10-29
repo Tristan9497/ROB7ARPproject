@@ -26,6 +26,7 @@ def brief(image, kp, patchw):
 
             descriptor=calculateDescriptor(patch_image,theta)
             Descriptors.append(descriptor)
+    return Descriptors
 
 def calculateDescriptor(src, theta):
     ##assume thata is in radian already
