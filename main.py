@@ -30,15 +30,15 @@ image_location2 = r'/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau
 
 img1 = cv2.imread(image_location)
 img2 = cv2.imread(image_location2)
-monochrome = cv.cvtColor(img1, cv2.COLOR_BGR2GRAY)
-monochrome2 = cv.cvtColor(img2, cv2.COLOR_BGR2GRAY)
+monochrome = cv2.cvtColor(img1, cv2.COLOR_BGR2GRAY)
+monochrome2 = cv2.cvtColor(img2, cv2.COLOR_BGR2GRAY)
 
 fast_detector = Detector()
 patches = fast_detector.end_to_end(generateimagepyramid(monochrome))
 patches2 = fast_detector.end_to_end(generateimagepyramid(monochrome2))
 
 des1 = brief(monochrome, patches, 31)
-des2= brief(monochrome2, patches2, 31)
+des2 = brief(monochrome2, patches2, 31)
 
 # orb = cv2.ORB_create()
 
