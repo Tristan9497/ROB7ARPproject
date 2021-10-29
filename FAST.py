@@ -125,14 +125,16 @@ class Detector:
         return candidate_coordinates[indices].astype(int)
 
     def end_to_end_on_single(self, monoc_image):
-        features_detected_end = []
+        features_detected = []
         candidate_locations = Detector.check_every_preliminary(self, monoc_image)
         for candidate in candidate_locations:
             pixel_values_around_candidate = Detector.get_conti_pixels(self, monoc_image, candidate)
             if Detector.check_continous(self, monoc_image[candidate[0] + 3, candidate[1] + 3],
                                         pixel_values_around_candidate):
-                features_detected_end += [candidate]
-        return features_detected_end
+                features_detected += [candidate]
+        features_detected_nms = np.hstack([np.array(features_detected), np.add(np.array(features_detected), 6)])
+        features_detected_nms = Detector.nms(self, features_detected_nms)[:, :2]
+        return features_detected_nms
 
     def end_to_end(self, monoc_image_pyramid):
         features_detected_end = []
@@ -141,37 +143,38 @@ class Detector:
         for monoc_image in monoc_image_pyramid:
             print("starting on a new level")
             features_detected = Detector.end_to_end_on_single(self, monoc_image)
-            features_detected_nms = np.hstack([np.array(features_detected), np.add(np.array(features_detected), 6)])
-            features_detected_nms = Detector.nms(self, features_detected_nms)[:, :2]
+            # features_detected_nms = np.hstack([np.array(features_detected), np.add(np.array(features_detected), 6)])
+            # features_detected_nms = Detector.nms(self, features_detected_nms)[:, :2]
             # print(features_detected_nms.shape)
 
             # Harris goes here
 
             #
-            features_detected_end.extend(np.multiply(features_detected_nms, scale))
+            features_detected_end.extend(np.multiply(features_detected, scale))
             scale *= 2
         return features_detected_end
 
-# n = 9
-# t = 30
-#
-# fast_detector = Detector(n, t)
-# pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
-# pic2 = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
-# monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
+
+n = 9
+t = 30
+
+fast_detector = Detector(n, t)
+pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
+pic2 = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
+monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
 # s_rows, s_cols = map(int, monochrome.shape)
 # # print(s_cols, s_rows)
-# monoc_image_pyramid = []
-# monoc_image_pyramid += [monochrome]
-# monoc_image_pyramid += [cv.pyrDown(monochrome)]
-# monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
+monoc_image_pyramid = []
+monoc_image_pyramid += [monochrome]
+monoc_image_pyramid += [cv.pyrDown(monochrome)]
+# # monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
 # # monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
 # # print(len(monoc_image_pyramid))
-# final_detections = fast_detector.end_to_end(monoc_image_pyramid)
-# # print(len(final_detections))
-# for index in range(len(final_detections)):
-#     cv.circle(pic, [final_detections[index][1], final_detections[index][0]], 5, (0), 1)
-# cv.namedWindow('test')
-# cv.imshow('test', pic)
-#
-# cv.waitKey()
+final_detections = fast_detector.end_to_end(monoc_image_pyramid)
+# print(len(final_detections))
+for index in range(len(final_detections)):
+    cv.circle(pic, [final_detections[index][1] + 3, final_detections[index][0] + 3], 5, (0, 0, 255), 1)
+cv.namedWindow('test')
+cv.imshow('test', pic)
+
+cv.waitKey()
