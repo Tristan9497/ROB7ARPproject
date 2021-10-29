@@ -4,10 +4,6 @@ from brief import *
 from offset_vector import *
 import matplotlib as plt
 
-"""
-main file skeleton that probably does not work
-"""
-
 
 def generateimagepyramid(monochrome_input):
     monoc_image_pyramid = []
@@ -16,7 +12,6 @@ def generateimagepyramid(monochrome_input):
     monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
     monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
     return monoc_image_pyramid
-# TODO add output previews if not added in functions themselves already
 
 # image_location = "./test.jpg"
 image_location = r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-1.jpg'
@@ -36,14 +31,7 @@ patches2 = fast_detector.end_to_end(generateimagepyramid(monochrome2))
 des1 = brief(monochrome, patches, 31)
 des2 = brief(monochrome2, patches2, 31)
 
-# orb = cv2.ORB_create()
-
-# Now detect the keypoints and compute
-# the descriptors for the query image
-# and train image
-#queryKeypoints, des1 = orb.detectAndCompute(monochrome, None)
-#trainKeypoints, des2 = orb.detectAndCompute(monochrome2, None)
-##Matcher
+# Matcher
 bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck=True)
 
 # Match descriptors.
@@ -54,29 +42,7 @@ matches = sorted(matches, key = lambda x:x.distance)
 patches=np.array(patches)
 patches2=np.array(patches2)
 img3=np.array([])
+
 # Draw first 10 matches.
 ORB_matches =cv2.drawMatches(img1, patches, img2, patches2, matches[:], None, flags=2)
 cv2.imshow(ORB_matches)
-# # TODO check if logic is correct
-# harris_measures = np.ndarray()
-# for patch in patches:
-#     patch = np.float32(patch)
-#     patch_harris_values = cv2.cornerHarris(patch, 2, 3, 0.04) # TODO check params
-#     np.append(harris_measures, np.sum(patch_harris_values))
-#
-# N_patches = 100
-# ind = np.argpartition(harris_measures, -N_patches)[-N_patches:]
-#
-# patches = patches[ind]
-#
-# descriptors = np.ndarray()
-# for patch in patches:
-#     C, theta = offset_vector(patch)
-#     patch_descriptors = brief(patch, theta)
-#     descriptors = np.vstack([descriptors, patch_descriptors])
-
-
-
-
-
-
