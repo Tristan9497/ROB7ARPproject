@@ -155,26 +155,26 @@ class Detector:
         return features_detected_end
 
 
-n = 9
-t = 30
-
-fast_detector = Detector(n, t)
-pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
-pic2 = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
-monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
-# s_rows, s_cols = map(int, monochrome.shape)
-# # print(s_cols, s_rows)
-monoc_image_pyramid = []
-monoc_image_pyramid += [monochrome]
-monoc_image_pyramid += [cv.pyrDown(monochrome)]
-# # monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
-# # monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
-# # print(len(monoc_image_pyramid))
-final_detections = fast_detector.end_to_end(monoc_image_pyramid)
-# print(len(final_detections))
-for index in range(len(final_detections)):
-    cv.circle(pic, [final_detections[index][1] + 3, final_detections[index][0] + 3], 5, (0, 0, 255), 1)
-cv.namedWindow('test')
-cv.imshow('test', pic)
-
-cv.waitKey()
+# n = 9
+# t = 30
+#
+# fast_detector = Detector(n, t)
+# pic = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
+# pic2 = cv.imread('/home/thekinga/University/PycharmProjects/ROB7ARPproject/aau-city-1.jpg')
+# monochrome = cv.cvtColor(pic, cv.COLOR_BGR2GRAY)
+# # s_rows, s_cols = map(int, monochrome.shape)
+# # # print(s_cols, s_rows)
+# monoc_image_pyramid = []
+# monoc_image_pyramid += [monochrome]
+# monoc_image_pyramid += [cv.pyrDown(monochrome)]
+# # # monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[1])]
+# # # monoc_image_pyramid += [cv.pyrDown(monoc_image_pyramid[2])]
+# # # print(len(monoc_image_pyramid))
+# final_detections = fast_detector.end_to_end(monoc_image_pyramid)
+# # print(len(final_detections))
+# for index in range(len(final_detections)):
+#     cv.circle(pic, [final_detections[index][1] + 3, final_detections[index][0] + 3], 5, (0, 0, 255), 1)
+# cv.namedWindow('test')
+# cv.imshow('test', pic)
+#
+# cv.waitKey()
