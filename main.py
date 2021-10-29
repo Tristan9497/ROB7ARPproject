@@ -1,5 +1,5 @@
 
-from FAST import *
+from FAST import Detector
 from brief import *
 from offset_vector import *
 import matplotlib as plt
