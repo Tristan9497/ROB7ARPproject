@@ -11,31 +11,36 @@ def getcoordinate(mu, sigma, patchw):
 
 def brief(image, kp, patchw):
     Descriptors = []
-    for i in range(np.shape(kp)[1]):
-        x = np.floor(kp[0][i]).astype(int)
-        y = np.floor(kp[1][i]).astype(int)
+    Keypoints=[]
+    for i in range(np.shape(kp)[0]):
+        x = np.floor(kp[i][1]).astype(int)
+        y = np.floor(kp[i][0]).astype(int)
         maxw=np.ceil(patchw/2).astype(int)
         patchr=np.floor(patchw/2).astype(int)
         #check if keypoint is outofbounds
 
         if maxw<x<(image.shape[1]-maxw) and maxw<y<(image.shape[0]-maxw) :
-            patch_image = image[y-maxw:y+patchr,x-maxw:x + patchr]
+
+            patch_image = image[y-patchr:y+maxw,x-patchr:x + maxw]
+
 
             #call antes function to get theta
             c, theta=offset_vector(patch_image)
-
+            keypoint = cv2.KeyPoint(x.astype(float), y.astype(float), 1, angle=theta)
             descriptor=calculateDescriptor(patch_image,theta)
             Descriptors.append(descriptor)
+            Keypoints.append(keypoint)
     Output=np.array(Descriptors)
     Output=Output.astype(np.uint8)
-    return Output
+    print(Output)
+    return Keypoints, Output
 
 def calculateDescriptor(src, theta):
     ##assume thata is in radian already
     Patchw=src.shape[0]
-    sigma =(1/25)*Patchw*Patchw
-    num = 16
-    kernelshape=(9,9)
+    sigma =(1/25)*(Patchw**2)
+    num = 8
+    kernelshape=(9, 9)
     img=cv2.GaussianBlur(src,kernelshape,2,2,cv2.BORDER_DEFAULT)
 
 
@@ -56,19 +61,23 @@ def calculateDescriptor(src, theta):
 
     ##calculate the binarystring
     rlt=[]
+    c, s = np.cos(theta), np.sin(theta)
+    R = np.array(((c, -s), (s, c)))
     for j in range(30):
-        angleoffset=np.radians(12)
-        c, s = np.cos(angleoffset), np.sin(angleoffset)
-        R = np.array(((c, -s), (s, c)))
+
+
         X = np.dot(X, R)
         Y = np.dot(Y, R)
+        angleoffset = np.radians(12)
+        c, s = np.cos(angleoffset), np.sin(angleoffset)
+        R = np.array(((c, -s), (s, c)))
         for i in range(num):
             xx=np.floor(X[i,0]).astype(int)
             xy=np.floor(X[i,1]).astype(int)
             yx=np.floor(Y[i,0]).astype(int)
             yy=np.floor(Y[i,1]).astype(int)
 
-            if src[xx,xy] < src[yx,yy]:
+            if img[xx,xy] < img[yx,yy]:
                 tao=1
             else:
                 tao=0
