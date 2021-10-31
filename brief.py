@@ -1,109 +1,87 @@
 import cv2
-import numpy as np
 from offset_vector import *
-import matplotlib.pyplot as plt
 
-def getcoordinate(mu, sigma, patchw):
-    while True:
-        s = np.round(np.random.normal(mu, sigma, 1))
-        if s >= -np.floor(patchw / 2) and s <= np.floor(patchw / 2):
-            return s
+class rBRIEF:
+    def __init__(self, patchw):
+        self.patchw = patchw
+        self.testnum = 8
+        self.X = np.zeros((self.testnum,2))
+        self.Y = np.zeros((self.testnum, 2))
+        self.sigma = (1 / 25) * (self.patchw ** 2)
+        self.maxw = np.ceil(self.patchw / 2).astype(int)
+        self.patchr = np.floor(self.patchw / 2).astype(int)
+        self.createbintestcoordinates()
 
-def brief(image, kp, patchw):
-    Descriptors = []
-    Keypoints=[]
-    for i in range(np.shape(kp)[0]):
-        x = np.floor(kp[i][1]).astype(int)
-        y = np.floor(kp[i][0]).astype(int)
-        maxw=np.ceil(patchw/2).astype(int)
-        patchr=np.floor(patchw/2).astype(int)
-        #check if keypoint is outofbounds
+    def getcoordinate(self):
+        #find normaly distributed coordinates in the largest circle
+        cov = np.eye(2)*self.sigma
+        while True:
+            s = np.random.multivariate_normal((0,0), cov)
+            if np.floor(np.sqrt(s[0]**2+s[1]**2))<self.patchr:
+                #translate to patch coordinates
+                s=[int(np.floor(x)) for x in s]
+                return s
 
-        if maxw<x<(image.shape[1]-maxw) and maxw<y<(image.shape[0]-maxw) :
-
-            patch_image = image[y-patchr:y+maxw,x-patchr:x + maxw]
-
-
-            #call antes function to get theta
-            c, theta=offset_vector(patch_image)
-            keypoint = cv2.KeyPoint(x.astype(float), y.astype(float), 1, angle=theta)
-            descriptor=calculateDescriptor(patch_image,theta)
-            Descriptors.append(descriptor)
-            Keypoints.append(keypoint)
-    Output=np.array(Descriptors)
-    Output=Output.astype(np.uint8)
-    print(Output)
-    return Keypoints, Output
-
-def calculateDescriptor(src, theta):
-    ##assume thata is in radian already
-    Patchw=src.shape[0]
-    sigma =(1/25)*(Patchw**2)
-    num = 8
-    kernelshape=(9, 9)
-    img=cv2.GaussianBlur(src,kernelshape,2,2,cv2.BORDER_DEFAULT)
+    def createbintestcoordinates(self):
+        #calculate max pixel distance to prevent out of bounds while turning the testpoints
+        for i in range(self.testnum):
+            self.X[i] = self.getcoordinate()
+            self.Y[i] = self.getcoordinate()
 
 
-    binarystring=0
-    tao=0
-    ##create all coordinates
-    X = np.zeros((num,2))
-    Y = np.zeros((num,2))
-    #calculate max pixel distance to prevent out of bounds while turning the testpoints
-    maxdist=np.floor(np.sqrt(0.5*Patchw*Patchw))
+    def brief(self, image, kp):
+        Descriptors = []
+        Keypoints = []
+        for i in range(np.shape(kp)[0]):
+            x = np.floor(kp[i][1]).astype(int)
+            y = np.floor(kp[i][0]).astype(int)
 
-    for i in range(num):
-        X[i,0] = getcoordinate(0, sigma, maxdist).astype(int)
-        X[i,1] = getcoordinate(0, sigma, maxdist).astype(int)
-        Y[i,0] = getcoordinate(0, sigma, maxdist).astype(int)
-        Y[i,1] = getcoordinate(0, sigma, maxdist).astype(int)
-        ##rotate all points by angle of patch
+            #check if keypoint is outofbounds then create patch and calc descriptors
+            if self.maxw<x<(image.shape[1]-self.maxw) and self.maxw<y<(image.shape[0]-self.maxw):
+                #create ROI at kp location
+                patch_image = image[y-self.patchr:y+self.maxw, x-self.patchr:x + self.maxw]
 
-    ##calculate the binarystring
-    rlt=[]
-    c, s = np.cos(theta), np.sin(theta)
-    R = np.array(((c, -s), (s, c)))
-    for j in range(30):
+                #get orientation of the patch
+                theta=offset_vector(patch_image)[1]
 
+                #calculate descriptor lookuptable for this patch and append it
+                Descriptors.append(self.calculateDescriptor(patch_image, theta))
+                Keypoints.append(cv2.KeyPoint(x.astype(float), y.astype(float), 1, angle=theta))
+        return Keypoints, np.array(Descriptors).astype(np.uint8)
 
-        X = np.dot(X, R)
-        Y = np.dot(Y, R)
+    def calculateDescriptor(self, src, theta):
+        ##assume thata is in radian already
+        img=cv2.GaussianBlur(src, (9,9), 2, 2, cv2.BORDER_DEFAULT)
+        binarystring = 0
+        rotdescriptors = []
+
+        #rotate to patch orientation from oFAST
+        c, s = np.cos(theta), np.sin(theta)
+        R = np.array(((c, -s), (s, c)))
+
+        #create mirror of var for rotating without changing the original
+        Xr = np.dot(self.X, R)
+        Yr = np.dot(self.Y, R)
+
         angleoffset = np.radians(12)
         c, s = np.cos(angleoffset), np.sin(angleoffset)
         R = np.array(((c, -s), (s, c)))
-        for i in range(num):
-            xx=np.floor(X[i,0]).astype(int)
-            xy=np.floor(X[i,1]).astype(int)
-            yx=np.floor(Y[i,0]).astype(int)
-            yy=np.floor(Y[i,1]).astype(int)
 
-            if img[xx,xy] < img[yx,yy]:
-                tao=1
-            else:
-                tao=0
-            binarystring+=pow(2,i-1)*tao
+        for j in range(30):
+            for i in range(self.testnum):
+                xx = int(np.floor(Xr[i, 0])) + self.patchr
+                xy = int(np.floor(Xr[i, 1])) + self.patchr
+                yx = int(np.floor(Yr[i, 0])) + self.patchr
+                yy = int(np.floor(Yr[i, 1])) + self.patchr
+                if img[xx, xy] < img[yx, yy]:
+                    tao = 1
+                else:
+                    tao = 0
+                binarystring += pow(2, i-1)*tao
+            #rotate binary test by 12deg according to rBRIEF
+            Xr = np.dot(Xr, R)
+            Yr = np.dot(Yr, R)
+            rotdescriptors.append(binarystring)
 
-        #     plt.plot([xx + 15, yx + 15],[xy + 15, yy + 15], color="white", linewidth=1)
-        #     plt.scatter([xx + 15],[xy+15],c="b")
-        #     plt.scatter([yx + 15], [yy + 15],c="r")
-        # plt.title(j)
-        # plt.imshow(img, cmap='gray', vmin=0, vmax=255)
-        # plt.show()
-        rlt.append(binarystring)
-    return rlt
+        return rotdescriptors
 
-if __name__=="__main__":
-    #create random patch
-    #src=np.random.randint(255, size=(31, 31),dtype=np.uint8)
-    src=cv2.imread(r'/Users/tristan/OneDrive - Aalborg Universitet/Aalborg University/Semester1/Perception/Exercises/aau-city-1.jpg')
-
-    src=cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-
-    #creating random keypoints for testing purposes
-    kp=np.random.rand(3,10)
-    kp[0,:] *= src.shape[1]
-    kp[1,:] *= src.shape[0]
-    kp[2,:] *= 2*np.pi
-
-    #print(kp)
-    brief(src,kp,31)
