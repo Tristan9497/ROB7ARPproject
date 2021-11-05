@@ -4,9 +4,9 @@ from offset_vector import *
 class rBRIEF:
     def __init__(self, patchw):
         self.patchw = patchw
-        self.testnum = 8
-        self.X = np.zeros((self.testnum,2))
-        self.Y = np.zeros((self.testnum, 2))
+        self.testnum = 256
+        self.X = np.zeros((30,self.testnum,2))
+        self.Y = np.zeros((30,self.testnum, 2))
         self.sigma = (1 / 25) * (self.patchw ** 2)
         self.maxw = np.ceil(self.patchw / 2).astype(int)
         self.patchr = np.floor(self.patchw / 2).astype(int)
@@ -23,10 +23,12 @@ class rBRIEF:
                 return s
 
     def createbintestcoordinates(self):
+        #create lookuptable for all 30 rotations
         #calculate max pixel distance to prevent out of bounds while turning the testpoints
-        for i in range(self.testnum):
-            self.X[i] = self.getcoordinate()
-            self.Y[i] = self.getcoordinate()
+        for i in range(30):
+            for j in range(self.testnum):
+                self.X[i,j] = self.getcoordinate()
+                self.Y[i,j] = self.getcoordinate()
 
 
     def brief(self, image, kp):
@@ -59,29 +61,25 @@ class rBRIEF:
         c, s = np.cos(theta), np.sin(theta)
         R = np.array(((c, -s), (s, c)))
 
-        #create mirror of var for rotating without changing the original
-        Xr = np.dot(self.X, R)
-        Yr = np.dot(self.Y, R)
 
-        angleoffset = np.radians(12)
-        c, s = np.cos(angleoffset), np.sin(angleoffset)
-        R = np.array(((c, -s), (s, c)))
+        #find according binarytests in lookuptable
+        rotincrement=int(np.round(theta/np.radians(12)))
+        if rotincrement>30: rotincrement-=30
 
-        for j in range(30):
-            for i in range(self.testnum):
-                xx = int(np.floor(Xr[i, 0])) + self.patchr
-                xy = int(np.floor(Xr[i, 1])) + self.patchr
-                yx = int(np.floor(Yr[i, 0])) + self.patchr
-                yy = int(np.floor(Yr[i, 1])) + self.patchr
+        for i in range(int(self.testnum/8)):
+            binarystring=0
+            for j in range(8):
+                index=i*8+j
+                xx = int(np.floor(self.X[rotincrement,index, 0])) + self.patchr
+                xy = int(np.floor(self.X[rotincrement,index, 1])) + self.patchr
+                yx = int(np.floor(self.Y[rotincrement,index, 0])) + self.patchr
+                yy = int(np.floor(self.Y[rotincrement,index, 1])) + self.patchr
                 if img[xx, xy] < img[yx, yy]:
                     tao = 1
                 else:
                     tao = 0
-                binarystring += pow(2, i-1)*tao
-            #rotate binary test by 12deg according to rBRIEF
-            Xr = np.dot(Xr, R)
-            Yr = np.dot(Yr, R)
-            rotdescriptors.append(binarystring)
 
+                binarystring += pow(2, j-1)*tao
+            rotdescriptors.append(binarystring)
         return rotdescriptors
 
