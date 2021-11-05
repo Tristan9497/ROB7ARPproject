@@ -20,7 +20,6 @@ class rBRIEF:
         while True:
             s = np.random.multivariate_normal((0, 0), cov)
             if np.floor(np.sqrt(s[0] ** 2 + s[1] ** 2)) < self.patchr:
-                s = [int(np.floor(x)) for x in s]
                 return s
 
     def createbintestcoordinates(self):
@@ -58,7 +57,7 @@ class rBRIEF:
         return Keypoints, np.array(Descriptors).astype(np.uint8)
 
     def calculateDescriptor(self, src, theta):
-        ##assume thata is in radian already
+        ##assume theta is in radian already
         img = cv2.GaussianBlur(src, (5, 5), 2, 2, cv2.BORDER_DEFAULT)
         descriptor = []
 
